@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum MenuStatus {
+  AVAILABLE
+  SOLD_OUT
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  ACCOUNT
+  MOBILE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  user_id    String   @id @default(uuid())
+  name       String
+  phone      String   @unique
+  role       UserRole @default(CUSTOMER)
+  created_at DateTime @default(now())
+
+  orders Order[]
+
+  @@map("users")
+}
+
+model Store {
+  store_id          String   @id @default(uuid())
+  name              String
+  location          String
+  opening_hours     String
+  max_orders_per_slot Int    @default(10)
+
+  menus  Menu[]
+  orders Order[]
+
+  @@map("stores")
+}
+
+model Menu {
+  menu_id  String     @id @default(uuid())
+  store_id String
+  name     String
+  price    Decimal    @db.Decimal(10, 2)
+  status   MenuStatus @default(AVAILABLE)
+
+  store       Store       @relation(fields: [store_id], references: [store_id], onDelete: Cascade)
+  order_items OrderItem[]
+
+  @@map("menus")
+}
+
+model Order {
+  order_id    String      @id @default(uuid())
+  user_id     String
+  store_id    String
+  pickup_time DateTime
+  status      OrderStatus @default(PENDING)
+  total_price Decimal     @db.Decimal(10, 2)
+  created_at  DateTime    @default(now())
+
+  user     User        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  store    Store       @relation(fields: [store_id], references: [store_id], onDelete: Cascade)
+  items    OrderItem[]
+  payment  Payment?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  order_item_id String  @id @default(uuid())
+  order_id      String
+  menu_id       String
+  options       Json    // Store options like sugar, ice, shots as JSON
+  quantity      Int     @default(1)
+
+  order Order @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
+  menu  Menu  @relation(fields: [menu_id], references: [menu_id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Payment {
+  payment_id String        @id @default(uuid())
+  order_id   String        @unique
+  method     PaymentMethod
+  status     PaymentStatus @default(PENDING)
+  amount     Decimal       @db.Decimal(10, 2)
+  created_at DateTime      @default(now())
+
+  order Order @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
+
+  @@map("payments")
+}
+

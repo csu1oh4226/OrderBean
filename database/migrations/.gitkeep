@@ -1,0 +1,3 @@
+# Database migrations directory
+# Prisma migrations will be stored in backend/prisma/migrations
+
