@@ -52,3 +52,9 @@ logs/
 tmp/
 temp/
 
+# Coverage reports (keep structure, ignore generated files)
+Report/coverage/
+Report/*.txt
+!Report/README.md
+!Report/COVERAGE_REPORT.md
+!Report/.gitkeep

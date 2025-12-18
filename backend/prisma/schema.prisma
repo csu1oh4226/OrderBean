@@ -46,6 +46,7 @@ model User {
   user_id    String   @id @default(uuid())
   name       String
   phone      String   @unique
+  password   String
   role       UserRole @default(CUSTOMER)
   created_at DateTime @default(now())
 

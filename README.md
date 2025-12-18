@@ -477,6 +477,326 @@ OrderBean은 바쁜 직장인을 위한 커피 주문 웹 서비스로, 카페 �
 
 프로젝트에 대한 문의사항이 있으시면 이슈를 생성해주세요.
 
+----
+
+## Refactoring TODO
+
+이 섹션은 코드 품질 개선을 위한 리팩토링 작업을 추적합니다. 자세한 분석은 [`docs/CODE_SMELLS_AND_SOLID_VIOLATIONS.md`](./docs/CODE_SMELLS_AND_SOLID_VIOLATIONS.md)를 참조하세요.
+
+### Definition of Done (완료 기준)
+
+각 리팩토링 항목은 다음 기준을 모두 만족해야 완료로 간주됩니다:
+
+1. **코드 변경**
+   - ✅ 리팩토링 기법이 올바르게 적용됨
+   - ✅ 기존 기능이 정상 동작함 (회귀 테스트 통과)
+   - ✅ 타입 안정성이 향상됨 (TypeScript 에러 없음)
+
+2. **테스트**
+   - ✅ 기존 테스트가 모두 통과함
+   - ✅ 새로운 테스트가 추가됨 (필요한 경우)
+   - ✅ 테스트 커버리지가 유지되거나 향상됨
+
+3. **코드 리뷰**
+   - ✅ PR이 생성되고 리뷰를 받음
+   - ✅ 리뷰 피드백이 반영됨
+   - ✅ 메인 브랜치에 머지됨
+
+4. **문서화**
+   - ✅ 변경 사항이 커밋 메시지에 명확히 기록됨
+   - ✅ 주요 변경 사항이 문서에 반영됨 (필요한 경우)
+
 ---
+
+### High Priority (즉시 해결 필요)
+
+#### 긴 함수 분리
+
+- [ ] **#1** `backend/src/controllers/orderController.ts:createOrder` (128줄)
+  - [ ] Service Layer 도입하여 비즈니스 로직 분리
+  - [ ] 검증 로직을 별도 함수로 추출
+  - [ ] 트랜잭션 처리를 서비스 레이어로 이동
+  - [ ] 단위 테스트 추가
+  - **완료 기준**: 함수 길이 50줄 이하, 각 책임이 명확히 분리됨
+
+- [ ] **#2** `backend/src/controllers/adminController.ts:getDashboard` (68줄)
+  - [ ] 통계 계산 로직을 별도 함수로 추출
+  - [ ] 피크 시간 분석 로직을 별도 함수로 추출
+  - [ ] Service Layer로 이동
+  - [ ] 단위 테스트 추가
+  - **완료 기준**: 함수 길이 30줄 이하, 각 책임이 명확히 분리됨
+
+#### 중복 코드 제거
+
+- [ ] **#4** 가격 계산 로직 통합 (3곳)
+  - [ ] `frontend/src/utils/priceCalculator.ts` 생성
+  - [ ] `MenuCard.calculatePrice`, `ShoppingCart.calculateItemPrice`, `cartStore.getTotal`에서 공통 함수 사용
+  - [ ] 단위 테스트 추가
+  - **완료 기준**: 가격 계산 로직이 단일 소스에서 관리됨, 모든 테스트 통과
+
+- [ ] **#5** 샷 가격 상수화 (4곳)
+  - [ ] `frontend/src/constants/prices.ts` 생성
+  - [ ] `SHOT_PRICE = 500` 상수 정의
+  - [ ] 모든 하드코딩된 값 제거
+  - **완료 기준**: 샷 가격이 상수로 관리됨, 하드코딩된 값 없음
+
+- [ ] **#7** 타입 정의 통합
+  - [ ] `frontend/src/types/index.ts`에 모든 공통 타입 정의
+  - [ ] `Menu`, `CartItem`, `Order` 등 중복 제거
+  - [ ] 모든 파일에서 중앙 타입 사용
+  - **완료 기준**: 타입 정의 중복 없음, 모든 파일이 중앙 타입 사용
+
+#### 타입 안정성 향상
+
+- [ ] **#19** `any` 타입 제거 (11곳)
+  - [ ] `MenuCardProps.onAddToCart`의 `any` 타입을 구체적 타입으로 변경
+  - [ ] `ShoppingCartProps`의 `options: any`를 구체적 타입으로 변경
+  - [ ] `cartStore`의 `any` 타입 제거
+  - [ ] `admin-api.ts`, `order-api.ts`의 `any` 타입 제거
+  - [ ] 모든 컨트롤러의 `any` 타입 제거
+  - **완료 기준**: `any` 타입 사용 0개, TypeScript strict 모드 통과
+
+#### 에러 처리 표준화
+
+- [ ] **#21** 프론트엔드/백엔드 에러 처리 일관성
+  - [ ] 공통 에러 응답 형식 정의
+  - [ ] 프론트엔드 에러 핸들러 구현
+  - [ ] 백엔드 에러 핸들러 개선
+  - [ ] 에러 타입 정의
+  - **완료 기준**: 일관된 에러 응답 형식, 모든 에러가 적절히 처리됨
+
+- [ ] **#22** 네트워크 에러 처리
+  - [ ] Error Boundary 구현
+  - [ ] API 호출 재시도 로직 추가
+  - [ ] 사용자 친화적 에러 메시지 표시
+  - [ ] 오프라인 상태 감지
+  - **완료 기준**: 네트워크 에러 시 적절한 처리, 사용자 경험 개선
+
+#### 의존성 역전
+
+- [ ] **#25** Repository Pattern 도입
+  - [ ] `backend/src/repositories/` 디렉토리 생성
+  - [ ] `OrderRepository`, `MenuRepository`, `StoreRepository` 구현
+  - [ ] 모든 컨트롤러가 Repository 사용하도록 변경
+  - [ ] Prisma 의존성 제거
+  - [ ] 단위 테스트 추가
+  - **완료 기준**: 컨트롤러가 Prisma에 직접 의존하지 않음, Repository 테스트 통과
+
+- [ ] **#26** 데이터 페칭 로직 분리
+  - [ ] `useMenus`, `useOrders`, `useAdmin` 커스텀 훅 생성
+  - [ ] `OrderPage`, `AdminDashboard`에서 하드코딩된 데이터 제거
+  - [ ] React Query 적용
+  - [ ] 로딩 및 에러 상태 처리
+  - **완료 기준**: 모든 페이지가 API를 통해 데이터를 가져옴, 하드코딩된 데이터 없음
+
+#### SOLID 원칙 준수
+
+- [ ] **#30, #31** SRP 위반 해결 (Service Layer)
+  - [ ] `backend/src/services/` 디렉토리 생성
+  - [ ] `OrderService`, `AdminService`, `StoreService` 구현
+  - [ ] 컨트롤러는 요청/응답 처리만 담당
+  - [ ] 비즈니스 로직은 서비스 레이어로 이동
+  - **완료 기준**: 각 클래스가 단일 책임만 가짐, 테스트 가능성 향상
+
+- [ ] **#38, #39** ISP 위반 해결 (인터페이스 명확화)
+  - [ ] `MenuCardProps.onAddToCart` 타입 정의
+  - [ ] `ShoppingCartProps` 타입 정의
+  - [ ] 모든 `any` 타입을 구체적 타입으로 변경
+  - **완료 기준**: 모든 인터페이스가 명확한 타입을 가짐
+
+- [ ] **#40** DIP 위반 해결 (의존성 역전)
+  - [ ] Repository 인터페이스 정의
+  - [ ] Service가 Repository 인터페이스에 의존
+  - [ ] Dependency Injection 적용
+  - **완료 기준**: 고수준 모듈이 저수준 모듈에 의존하지 않음
+
+---
+
+### Medium Priority (단기간 내 해결)
+
+#### 긴 함수 분리
+
+- [ ] **#3** `frontend/src/components/MenuCard.tsx:getCoffeeImageUrl` (23줄)
+  - [ ] 이미지 URL 매핑을 설정 객체로 분리
+  - [ ] Strategy Pattern 적용
+  - [ ] `frontend/src/constants/images.ts` 생성
+  - **완료 기준**: if-else 체인 제거, 새로운 메뉴 추가 시 설정만 변경
+
+#### 중복 코드 제거
+
+- [ ] **#6** localStorage 저장 로직 통합
+  - [ ] `cartStore`에서 localStorage 동기화 로직을 별도 함수로 추출
+  - [ ] Side Effect 분리
+  - [ ] 테스트 가능성 향상
+  - **완료 기준**: localStorage 저장 로직이 단일 함수에서 관리됨
+
+- [ ] **#8** 에러 처리 패턴 통합
+  - [ ] 공통 에러 처리 래퍼 함수 생성
+  - [ ] AOP 적용 (선택사항)
+  - [ ] 모든 컨트롤러에 적용
+  - **완료 기준**: 에러 처리 패턴이 일관됨, 중복 코드 제거
+
+- [ ] **#9** 옵션 비교 로직 통합
+  - [ ] `compareOptions` 유틸 함수 생성
+  - [ ] Value Object 패턴 적용 (선택사항)
+  - [ ] 모든 위치에서 공통 함수 사용
+  - **완료 기준**: 옵션 비교 로직이 단일 함수에서 관리됨
+
+#### 매직 넘버 제거
+
+- [ ] **#12** 시간 관련 상수화
+  - [ ] `60 * 60 * 1000` (1시간) 상수 정의
+  - [ ] `backend/src/constants/time.ts` 생성
+  - **완료 기준**: 시간 관련 매직 넘버 없음
+
+- [ ] **#13** 페이지네이션 기본값 상수화
+  - [ ] `1, 10, 20` 상수 정의
+  - [ ] `backend/src/constants/pagination.ts` 생성
+  - **완료 기준**: 페이지네이션 기본값이 상수로 관리됨
+
+#### 의미없는 이름 개선
+
+- [ ] **#16** 제네릭한 변수명 개선
+  - [ ] `id` → `orderId`, `menuId` 등 구체적 이름으로 변경
+  - [ ] `delta` → `quantityChange` 등 의미있는 이름으로 변경
+  - [ ] `item` → `cartItem`, `menuItem` 등 구체적 이름으로 변경
+  - [ ] `prev` → `previousItems` 등 의미있는 이름으로 변경
+  - **완료 기준**: 모든 변수명이 의미를 명확히 전달함
+
+#### 예외 처리 개선
+
+- [ ] **#20** `alert()` 대체
+  - [ ] Toast 알림 시스템 도입
+  - [ ] 또는 Modal 컴포넌트 사용
+  - [ ] `OrderPage:100`의 `alert()` 제거
+  - **완료 기준**: `alert()` 사용 없음, 사용자 경험 개선
+
+- [ ] **#24** Prisma 에러 처리 개선
+  - [ ] 모든 Prisma 에러 타입 처리
+  - [ ] 에러 핸들러에 Prisma 에러 케이스 추가
+  - [ ] 사용자 친화적 에러 메시지
+  - **완료 기준**: 모든 Prisma 에러가 적절히 처리됨
+
+#### 의존성 개선
+
+- [ ] **#27** API 클라이언트 의존성 개선
+  - [ ] localStorage 의존성을 Dependency Injection으로 변경
+  - [ ] 테스트 가능성 향상
+  - **완료 기준**: API 클라이언트가 localStorage에 직접 의존하지 않음
+
+- [ ] **#29** 거리 계산 로직 분리
+  - [ ] `backend/src/services/distanceService.ts` 생성
+  - [ ] Haversine 공식 구현
+  - [ ] 컨트롤러에서 서비스 사용
+  - **완료 기준**: 거리 계산 로직이 서비스 레이어로 분리됨
+
+#### SOLID 원칙 준수
+
+- [ ] **#32** `MenuCard` 컴포넌트 책임 분리
+  - [ ] `useMenuOptions` 커스텀 훅 생성
+  - [ ] 이미지 URL 로직을 유틸 함수로 분리
+  - [ ] 가격 계산 로직을 유틸 함수로 분리
+  - **완료 기준**: 컴포넌트가 UI 렌더링만 담당
+
+- [ ] **#33** `ShoppingCart` 컴포넌트 책임 분리
+  - [ ] 가격 계산 로직을 유틸 함수로 분리
+  - [ ] 아이템 표시 로직을 서브 컴포넌트로 분리
+  - **완료 기준**: 컴포넌트가 UI 렌더링만 담당
+
+- [ ] **#34** `cartStore` 책임 분리
+  - [ ] localStorage 동기화를 별도 모듈로 분리
+  - [ ] 가격 계산을 유틸 함수로 분리
+  - [ ] 상태 관리만 담당
+  - **완료 기준**: 각 책임이 명확히 분리됨
+
+- [ ] **#35** OCP 위반 해결 (`getCoffeeImageUrl`)
+  - [ ] Strategy Pattern 적용
+  - [ ] 설정 객체로 이미지 URL 관리
+  - [ ] 새로운 메뉴 추가 시 설정만 변경
+  - **완료 기준**: 함수 수정 없이 새로운 메뉴 추가 가능
+
+- [ ] **#41** DIP 위반 해결 (`api.ts`)
+  - [ ] localStorage 의존성을 Dependency Injection으로 변경
+  - [ ] 테스트 가능성 향상
+  - **완료 기준**: API 클라이언트가 localStorage에 직접 의존하지 않음
+
+---
+
+### Low Priority (여유 있을 때 개선)
+
+#### 매직 넘버 제거
+
+- [ ] **#11** setTimeout 상수화
+  - [ ] `500` (ms) 상수 정의
+  - [ ] `frontend/src/constants/delays.ts` 생성
+  - **완료 기준**: setTimeout 값이 상수로 관리됨
+
+- [ ] **#14** HTTP 상태 코드 상수화
+  - [ ] `400, 404, 403` 등 상수 정의
+  - [ ] `backend/src/constants/httpStatus.ts` 생성
+  - **완료 기준**: HTTP 상태 코드가 상수로 관리됨
+
+- [ ] **#15** 임시 매장 ID 제거
+  - [ ] 환경 변수 또는 설정으로 관리
+  - [ ] `OrderPage:21`의 하드코딩 제거
+  - **완료 기준**: 임시 ID가 설정으로 관리됨
+
+#### 의미없는 이름 개선
+
+- [ ] **#17** `tx` → `transaction` 변경
+  - [ ] `orderController.ts:82`의 변수명 개선
+  - **완료 기준**: 변수명이 의미를 명확히 전달함
+
+- [ ] **#18** `lat`, `lng` → `latitude`, `longitude` 변경
+  - [ ] `storeController.ts:18-19`의 변수명 개선
+  - **완료 기준**: 변수명이 의미를 명확히 전달함
+
+#### 예외 처리 개선
+
+- [ ] **#23** 이미지 로드 실패 처리 개선
+  - [ ] 로딩 상태 표시
+  - [ ] 재시도 로직 추가
+  - [ ] 사용자 친화적 메시지
+  - **완료 기준**: 이미지 로드 실패 시 적절한 처리
+
+#### 의존성 개선
+
+- [ ] **#28** 전역 상태 의존성 개선
+  - [ ] Props Drilling 또는 Context 적용
+  - [ ] 컴포넌트 간 결합도 감소
+  - **완료 기준**: 전역 상태 의존성이 적절히 관리됨
+
+#### SOLID 원칙 준수
+
+- [ ] **#36** 에러 핸들러 확장성 개선
+  - [ ] Strategy Pattern 적용
+  - [ ] Chain of Responsibility 패턴 적용
+  - [ ] 새로운 에러 타입 추가 시 수정 최소화
+  - **완료 기준**: 에러 핸들러가 확장 가능한 구조
+
+---
+
+## 진행 상황 추적
+
+- **High Priority**: 0/15 완료
+- **Medium Priority**: 0/15 완료
+- **Low Priority**: 0/6 완료
+- **전체 진행률**: 0/36 (0%)
+
+---
+
+## 참고 문서
+
+- [코드 스멜 및 SOLID 위반 분석](./docs/CODE_SMELLS_AND_SOLID_VIOLATIONS.md)
+- [리팩토링 작업 계획](./docs/REFACTORING_PLAN.md)
+
+---
+
+## To-D0 List
+
+- TC
+- Implementation
+- Refactoring
+
 
 Made with ☕ by OrderBean Team
