@@ -1,20 +1,16 @@
 'use client'
 
-interface CartItem {
-  menu_id: string
-  menu_name: string
-  base_price: number
-  quantity: number
-  options: {
-    shot?: boolean
-    syrup?: boolean
-  }
-}
+import type { CartItem, MenuOptions } from '@/types'
+import {
+  calculateItemPrice,
+  calculateItemUnitPrice,
+  calculateTotalPrice,
+} from '@/utils/priceCalculator'
 
 interface ShoppingCartProps {
   items: CartItem[]
-  onRemoveItem: (menuId: string, options: any) => void
-  onUpdateQuantity: (menuId: string, options: any, quantity: number) => void
+  onRemoveItem: (menuId: string, options: MenuOptions) => void
+  onUpdateQuantity: (menuId: string, options: MenuOptions, quantity: number) => void
   onOrder: () => void
 }
 
@@ -24,20 +20,8 @@ export default function ShoppingCart({
   onUpdateQuantity,
   onOrder,
 }: ShoppingCartProps) {
-  const calculateItemPrice = (item: CartItem) => {
-    let price = item.base_price
-    if (item.options.shot) price += 500
-    return price * item.quantity
-  }
-
-  const calculateItemUnitPrice = (item: CartItem) => {
-    let price = item.base_price
-    if (item.options.shot) price += 500
-    return price
-  }
-
   const calculateTotal = () => {
-    return items.reduce((total, item) => total + calculateItemPrice(item), 0)
+    return calculateTotalPrice(items)
   }
 
   const getItemKey = (item: CartItem) => {
@@ -83,7 +67,7 @@ export default function ShoppingCart({
                   {getItemDisplayName(item)}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>단가: {calculateItemUnitPrice(item).toLocaleString()}원</span>
+                  <span>단가: {calculateItemUnitPrice(item.base_price, item.options).toLocaleString()}원</span>
                   <span>×</span>
                   <span>{item.quantity}개</span>
                 </div>

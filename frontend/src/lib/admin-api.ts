@@ -9,7 +9,10 @@ export const getDashboardStats = async () => {
 
 // 주문 목록 조회
 export const getOrders = async (status?: string, page = 1, limit = 20) => {
-  const params: any = { page, limit }
+  const params: { page: number; limit: number; status?: string } = {
+    page,
+    limit,
+  }
   if (status && status !== 'all') {
     params.status = status
   }

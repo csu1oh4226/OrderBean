@@ -1,21 +1,12 @@
 import { create } from 'zustand'
-
-interface CartItem {
-  menu_id: string
-  menu_name: string
-  base_price: number
-  quantity: number
-  options: {
-    shot?: boolean
-    syrup?: boolean
-  }
-}
+import type { CartItem, MenuOptions } from '@/types'
+import { calculateTotalPrice } from '@/utils/priceCalculator'
 
 interface CartStore {
   items: CartItem[]
   addItem: (item: CartItem) => void
-  removeItem: (menuId: string, options: any) => void
-  updateQuantity: (menuId: string, options: any, quantity: number) => void
+  removeItem: (menuId: string, options: MenuOptions) => void
+  updateQuantity: (menuId: string, options: MenuOptions, quantity: number) => void
   clearCart: () => void
   getTotal: () => number
 }
@@ -79,11 +70,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }
   },
   getTotal: () => {
-    return get().items.reduce((total, item) => {
-      let price = item.base_price
-      if (item.options.shot) price += 500
-      return total + price * item.quantity
-    }, 0)
+    return calculateTotalPrice(get().items)
   },
 }))
 

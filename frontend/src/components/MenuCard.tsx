@@ -1,15 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import type { Menu, MenuOptions } from '@/types'
+import { SHOT_PRICE, SYRUP_PRICE } from '@/constants/prices'
+import { calculateUnitPrice } from '@/utils/priceCalculator'
 
 interface MenuCardProps {
-  menu: {
-    menu_id: string
-    name: string
-    price: number
-    description?: string
-  }
-  onAddToCart: (menu: any, options: any, quantity: number) => void
+  menu: Menu
+  onAddToCart: (menu: Menu, options: MenuOptions, quantity: number) => void
 }
 
 export default function MenuCard({ menu, onAddToCart }: MenuCardProps) {
@@ -17,14 +15,13 @@ export default function MenuCard({ menu, onAddToCart }: MenuCardProps) {
   const [syrupAdded, setSyrupAdded] = useState(false)
   const [quantity, setQuantity] = useState(1)
 
-  const SHOT_PRICE = 500
-  const SYRUP_PRICE = 0
-
   const calculatePrice = (): number => {
-    let total = menu.price
-    if (shotAdded) total += SHOT_PRICE
-    if (syrupAdded) total += SYRUP_PRICE
-    return total * quantity
+    const options: MenuOptions = {
+      shot: shotAdded,
+      syrup: syrupAdded,
+    }
+    const unitPrice = calculateUnitPrice(menu.price, options)
+    return unitPrice * quantity
   }
 
   const handleAddToCart = (): void => {

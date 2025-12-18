@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import type { OrderStatus } from '@/types'
 
 interface Order {
   order_id: string
@@ -14,7 +15,7 @@ interface Order {
     name: string
   }
   total_price: number
-  status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED'
+  status: OrderStatus
   created_at: string
   pickup_time: string
   items: Array<{
@@ -67,7 +68,9 @@ export default function AdminOrdersPage() {
     // TODO: API 호출로 주문 상태 변경
     setOrders(
       orders.map((order) =>
-        order.order_id === orderId ? { ...order, status: newStatus as any } : order
+        order.order_id === orderId
+          ? { ...order, status: newStatus as OrderStatus }
+          : order
       )
     )
   }

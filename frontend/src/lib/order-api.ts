@@ -1,5 +1,5 @@
 import api from './api'
-import type { Menu, Order } from '../types'
+import type { Menu, Order, MenuOptions } from '../types'
 
 // 매장 메뉴 조회
 export const getStoreMenus = async (storeId: string) => {
@@ -14,7 +14,7 @@ export const createOrder = async (data: {
   items: Array<{
     menu_id: string
     quantity: number
-    options: Record<string, any>
+    options: MenuOptions
   }>
 }) => {
   const response = await api.post('/api/orders', data)

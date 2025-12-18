@@ -6,13 +6,7 @@ import Link from 'next/link'
 import MenuCard from '@/components/MenuCard'
 import ShoppingCart from '@/components/ShoppingCart'
 import { useCartStore } from '@/store/cartStore'
-
-interface Menu {
-  menu_id: string
-  name: string
-  price: number
-  description?: string
-}
+import type { Menu, MenuOptions } from '@/types'
 
 export default function OrderPage() {
   const router = useRouter()
@@ -71,7 +65,7 @@ export default function OrderPage() {
 
   const handleAddToCart = (
     menu: Menu,
-    options: { shot?: boolean; syrup?: boolean },
+    options: MenuOptions,
     quantity: number
   ) => {
     addItem({
@@ -83,13 +77,13 @@ export default function OrderPage() {
     })
   }
 
-  const handleRemoveItem = (menuId: string, options: any) => {
+  const handleRemoveItem = (menuId: string, options: MenuOptions) => {
     removeItem(menuId, options)
   }
 
   const handleUpdateQuantity = (
     menuId: string,
-    options: any,
+    options: MenuOptions,
     quantity: number
   ) => {
     updateQuantity(menuId, options, quantity)
