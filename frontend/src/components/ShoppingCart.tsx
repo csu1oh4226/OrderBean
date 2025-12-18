@@ -6,6 +6,7 @@ import {
   calculateItemUnitPrice,
   calculateTotalPrice,
 } from '@/utils/priceCalculator'
+import { getCartItemKey } from '@/utils/cartUtils'
 
 interface ShoppingCartProps {
   items: CartItem[]
@@ -24,9 +25,6 @@ export default function ShoppingCart({
     return calculateTotalPrice(items)
   }
 
-  const getItemKey = (item: CartItem) => {
-    return `${item.menu_id}-${JSON.stringify(item.options)}`
-  }
 
   const getItemDisplayName = (item: CartItem) => {
     let name = item.menu_name
@@ -59,7 +57,7 @@ export default function ShoppingCart({
         <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
           {items.map((item) => (
             <div
-              key={getItemKey(item)}
+              key={getCartItemKey(item)}
               className="flex items-start justify-between gap-4 py-3 border-b border-gray-100 last:border-b-0"
             >
               <div className="flex-1 min-w-0">
@@ -96,7 +94,7 @@ export default function ShoppingCart({
             <div className="space-y-2">
               {items.map((item) => (
                 <div
-                  key={getItemKey(item)}
+                  key={getCartItemKey(item)}
                   className="flex items-center justify-between text-sm"
                 >
                   <span className="text-gray-600 truncate pr-2">

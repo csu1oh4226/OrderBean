@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import type { CartItem, MenuOptions } from '@/types'
 import { calculateTotalPrice } from '@/utils/priceCalculator'
+import {
+  saveCartToStorage,
+  loadCartFromStorage,
+  clearCartFromStorage,
+} from '@/utils/cartStorage'
+import { findCartItemIndex, isMatchingCartItem } from '@/utils/cartUtils'
 
 interface CartStore {
   items: CartItem[]
@@ -15,59 +21,42 @@ export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   addItem: (item) => {
     const existingItems = get().items
-    const existingIndex = existingItems.findIndex(
-      (existing) =>
-        existing.menu_id === item.menu_id &&
-        JSON.stringify(existing.options) === JSON.stringify(item.options)
+    const existingIndex = findCartItemIndex(
+      existingItems,
+      item.menu_id,
+      item.options
     )
 
+    let updatedItems: CartItem[]
     if (existingIndex >= 0) {
-      const updatedItems = [...existingItems]
+      updatedItems = [...existingItems]
       updatedItems[existingIndex].quantity += item.quantity
-      set({ items: updatedItems })
     } else {
-      set({ items: [...existingItems, item] })
+      updatedItems = [...existingItems, item]
     }
 
-    // 로컬 스토리지에 저장
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('orderbean-cart', JSON.stringify(get().items))
-    }
+    set({ items: updatedItems })
+    saveCartToStorage(updatedItems)
   },
   removeItem: (menuId, options) => {
-    const newItems = get().items.filter(
-      (item) =>
-        !(
-          item.menu_id === menuId &&
-          JSON.stringify(item.options) === JSON.stringify(options)
-        )
+    const filteredItems = get().items.filter(
+      (item) => !isMatchingCartItem(item, menuId, options)
     )
-    set({ items: newItems })
-
-    // 로컬 스토리지에 저장
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('orderbean-cart', JSON.stringify(newItems))
-    }
+    set({ items: filteredItems })
+    saveCartToStorage(filteredItems)
   },
   updateQuantity: (menuId, options, quantity) => {
-    const newItems = get().items.map((item) =>
-      item.menu_id === menuId &&
-      JSON.stringify(item.options) === JSON.stringify(options)
+    const mappedItems = get().items.map((item) =>
+      isMatchingCartItem(item, menuId, options)
         ? { ...item, quantity }
         : item
     )
-    set({ items: newItems })
-
-    // 로컬 스토리지에 저장
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('orderbean-cart', JSON.stringify(newItems))
-    }
+    set({ items: mappedItems })
+    saveCartToStorage(mappedItems)
   },
   clearCart: () => {
     set({ items: [] })
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('orderbean-cart')
-    }
+    clearCartFromStorage()
   },
   getTotal: () => {
     return calculateTotalPrice(get().items)
@@ -75,15 +64,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
 }))
 
 // 로컬 스토리지에서 초기 데이터 로드
-if (typeof window !== 'undefined') {
-  const savedCart = localStorage.getItem('orderbean-cart')
-  if (savedCart) {
-    try {
-      const items = JSON.parse(savedCart)
-      useCartStore.setState({ items })
-    } catch (e) {
-      console.error('Failed to load cart from localStorage', e)
-    }
-  }
+const savedCart = loadCartFromStorage()
+if (savedCart) {
+  useCartStore.setState({ items: savedCart })
 }
 
