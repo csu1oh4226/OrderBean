@@ -24,6 +24,8 @@ export interface Menu {
   name: string
   price: number
   status: MenuStatus
+  description?: string
+  image_url?: string
 }
 
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED'
@@ -36,14 +38,18 @@ export interface Order {
   status: OrderStatus
   total_price: number
   created_at: string
+  items?: OrderItem[]
 }
 
 export interface OrderItem {
   order_item_id: string
   order_id: string
   menu_id: string
+  menu_name?: string
   options: Record<string, any>
   quantity: number
+  unit_price?: number
+  total_price?: number
 }
 
 export type PaymentMethod = 'CARD' | 'ACCOUNT' | 'MOBILE'
