@@ -24,6 +24,7 @@ export interface Menu {
   name: string
   price: number
   status: MenuStatus
+  description?: string
 }
 
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED'
@@ -42,7 +43,7 @@ export interface OrderItem {
   order_item_id: string
   order_id: string
   menu_id: string
-  options: Record<string, any>
+  options: MenuOptions
   quantity: number
 }
 
@@ -58,3 +59,16 @@ export interface Payment {
   amount: number
 }
 
+// Cart 관련 타입
+export interface MenuOptions {
+  shot?: boolean
+  syrup?: boolean
+}
+
+export interface CartItem {
+  menu_id: string
+  menu_name: string
+  base_price: number
+  quantity: number
+  options: MenuOptions
+}

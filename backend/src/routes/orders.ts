@@ -11,6 +11,6 @@ export const orderRoutes = Router()
 orderRoutes.use(authenticate)
 
 orderRoutes.post('/', createOrder)
-orderRoutes.get('/:id', getOrder)
 orderRoutes.get('/users/me/orders', getUserOrders)
+orderRoutes.get('/:id', getOrder)
 
